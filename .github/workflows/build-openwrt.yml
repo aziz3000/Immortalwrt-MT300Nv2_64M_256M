@@ -27,7 +27,7 @@ on:
   
 env:
   #REPO_URL: --single-branch --filter=blob:none https://github.com/immortalwrt/immortalwrt
-  REPO_URL: --single-branch --filter=blob:none https://github.com/aziz300/immortalwrt
+  REPO_URL: --single-branch --filter=blob:none https://github.com/aziz3000/immortalwrt
   REPO_BRANCH: openwrt-24.10
   FEEDS_CONF: feeds.conf.default
   CONFIG_FILE: .diffconfig
