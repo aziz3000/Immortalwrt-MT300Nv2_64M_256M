@@ -21,13 +21,13 @@ echo "src-git nikki https://github.com/nikkinikki-org/OpenWrt-nikki.git;main" >>
 
 mkdir -p files/usr/share
 mkdir -p files/etc/
-touch files/etc/lenyu_version
+touch files/etc/aziz_version
 mkdir wget
 touch wget/DISTRIB_REVISION1
 touch wget/DISTRIB_REVISION3
 touch files/usr/share/Check_Update.sh
-touch files/usr/share/Lenyu-auto.sh
-touch files/usr/share/Lenyu-pw.sh
+touch files/usr/share/aziz-auto.sh
+touch files/usr/share/aziz-pw.sh
 
 # backup config
 cat>>/etc/sysupgrade.conf<<-EOF
@@ -61,65 +61,65 @@ rm -rf bin/targets/x86/64/immortalwrt-x86-64-generic-ext4-rootfs.img.gz
 rm -rf bin/targets/x86/64/immortalwrt-x86-64-generic-ext4-combined-efi.img.gz
 rm -rf bin/targets/x86/64/immortalwrt-x86-64-generic-ext4-combined.img.gz
 sleep 2
-rename_version=`cat files/etc/lenyu_version`
+rename_version=`cat files/etc/aziz_version`
 str1=`grep "KERNEL_PATCHVER:="  target/linux/x86/Makefile | cut -d = -f 2` #判断当前默认内核版本号如5.10
 ver54=`grep "LINUX_VERSION-5.4 ="  include/kernel-5.4 | cut -d . -f 3`
 ver515=`grep "LINUX_VERSION-5.15 ="  include/kernel-5.15 | cut -d . -f 3`
 ver66=`grep "LINUX_VERSION-6.6 ="  include/kernel-6.6 | cut -d . -f 3`
 sleep 2
 if [ "$str1" = "5.4" ];then
-  mv  bin/targets/x86/64/immortalwrt-x86-64-generic-squashfs-combined.img.gz       bin/targets/x86/64/immortalwrt_x86-64-${rename_version}_${str1}.${ver54}_sta_Lenyu.img.gz
-  mv  bin/targets/x86/64/immortalwrt-x86-64-generic-squashfs-combined-efi.img.gz   bin/targets/x86/64/immortalwrt_x86-64-${rename_version}_${str1}.${ver54}_uefi-gpt_sta_Lenyu.img.gz
+  mv  bin/targets/x86/64/immortalwrt-x86-64-generic-squashfs-combined.img.gz       bin/targets/x86/64/immortalwrt_x86-64-${rename_version}_${str1}.${ver54}_sta_aziz.img.gz
+  mv  bin/targets/x86/64/immortalwrt-x86-64-generic-squashfs-combined-efi.img.gz   bin/targets/x86/64/immortalwrt_x86-64-${rename_version}_${str1}.${ver54}_uefi-gpt_sta_aziz.img.gz
 elif [ "$str1" = "5.15" ];then
-  mv  bin/targets/x86/64/immortalwrt-x86-64-generic-squashfs-combined.img.gz       bin/targets/x86/64/immortalwrt_x86-64-${rename_version}_${str1}.${ver515}_sta_Lenyu.img.gz
-  mv  bin/targets/x86/64/immortalwrt-x86-64-generic-squashfs-combined-efi.img.gz   bin/targets/x86/64/immortalwrt_x86-64-${rename_version}_${str1}.${ver515}_uefi-gpt_sta_Lenyu.img.gz
+  mv  bin/targets/x86/64/immortalwrt-x86-64-generic-squashfs-combined.img.gz       bin/targets/x86/64/immortalwrt_x86-64-${rename_version}_${str1}.${ver515}_sta_aziz.img.gz
+  mv  bin/targets/x86/64/immortalwrt-x86-64-generic-squashfs-combined-efi.img.gz   bin/targets/x86/64/immortalwrt_x86-64-${rename_version}_${str1}.${ver515}_uefi-gpt_sta_aziz.img.gz
 elif [ "$str1" = "6.6" ];then
-  mv  bin/targets/x86/64/immortalwrt-x86-64-generic-squashfs-combined.img.gz       bin/targets/x86/64/immortalwrt_x86-64-${rename_version}_${str1}.${ver66}_sta_Lenyu.img.gz
-  mv  bin/targets/x86/64/immortalwrt-x86-64-generic-squashfs-combined-efi.img.gz   bin/targets/x86/64/immortalwrt_x86-64-${rename_version}_${str1}.${ver66}_uefi-gpt_sta_Lenyu.img.gz
+  mv  bin/targets/x86/64/immortalwrt-x86-64-generic-squashfs-combined.img.gz       bin/targets/x86/64/immortalwrt_x86-64-${rename_version}_${str1}.${ver66}_sta_aziz.img.gz
+  mv  bin/targets/x86/64/immortalwrt-x86-64-generic-squashfs-combined-efi.img.gz   bin/targets/x86/64/immortalwrt_x86-64-${rename_version}_${str1}.${ver66}_uefi-gpt_sta_aziz.img.gz
 fi
-ls bin/targets/x86/64 | grep "gpt_sta_Lenyu.img" | cut -d - -f 3 | cut -d _ -f 1-2 > wget/op_version1
+ls bin/targets/x86/64 | grep "gpt_sta_aziz.img" | cut -d - -f 3 | cut -d _ -f 1-2 > wget/op_version1
 #md5
 ls -l  "bin/targets/x86/64" | awk -F " " '{print $9}' > wget/open_sta_md5
-sta_version=`grep "_uefi-gpt_sta_Lenyu.img.gz" wget/open_sta_md5 | cut -d - -f 3 | cut -d _ -f 1-2`
-immortalwrt_sta=immortalwrt_x86-64-${sta_version}_sta_Lenyu.img.gz
-immortalwrt_sta_uefi=immortalwrt_x86-64-${sta_version}_uefi-gpt_sta_Lenyu.img.gz
+sta_version=`grep "_uefi-gpt_sta_aziz.img.gz" wget/open_sta_md5 | cut -d - -f 3 | cut -d _ -f 1-2`
+immortalwrt_sta=immortalwrt_x86-64-${sta_version}_sta_aziz.img.gz
+immortalwrt_sta_uefi=immortalwrt_x86-64-${sta_version}_uefi-gpt_sta_aziz.img.gz
 cd bin/targets/x86/64
 md5sum $immortalwrt_sta > immortalwrt_sta.md5
 md5sum $immortalwrt_sta_uefi > immortalwrt_sta_uefi.md5
 exit 0
 EOF
 
-cat>lenyu.sh<<-\EOOF
+cat>aziz.sh<<-\EOOF
 #!/bin/bash
-lenyu_version="`date '+%y%m%d%H%M'`_sta_Len yu" 
-echo $lenyu_version >  wget/DISTRIB_REVISION1 
-echo $lenyu_version | cut -d _ -f 1 >  files/etc/lenyu_version  
+aziz_version="`date '+%y%m%d%H%M'`_sta_aziz" 
+echo $aziz_version >  wget/DISTRIB_REVISION1 
+echo $aziz_version | cut -d _ -f 1 >  files/etc/aziz_version  
 new_DISTRIB_REVISION=`cat  wget/DISTRIB_REVISION1`
 #
 grep "Check_Update.sh"  package/emortal/default-settings/files/99-default-settings
 if [ $? != 0 ]; then
 	sed -i 's/exit 0/ /'  package/emortal/default-settings/files/99-default-settings
 	cat>> package/emortal/default-settings/files/99-default-settings<<-EOF
-	sed -i '$ a alias lenyu="sh /usr/share/Check_Update.sh"' /etc/profile
+	sed -i '$ a alias aziz="sh /usr/share/Check_Update.sh"' /etc/profile
 	sed -i '/DISTRIB_DESCRIPTION/d' /etc/openwrt_release
 	echo "DISTRIB_DESCRIPTION='$new_DISTRIB_REVISION'" >> /etc/openwrt_release
 	exit 0
 	EOF
 fi
-grep "Lenyu-auto.sh"  package/emortal/default-settings/files/99-default-settings
+grep "aziz-auto.sh"  package/emortal/default-settings/files/99-default-settings
 if [ $? != 0 ]; then
 	sed -i 's/exit 0/ /'  package/emortal/default-settings/files/99-default-settings
 	cat>> package/emortal/default-settings/files/99-default-settings<<-EOF
-	sed -i '$ a alias lenyu-auto="sh /usr/share/Lenyu-auto.sh"' /etc/profile
+	sed -i '$ a alias aziz-auto="sh /usr/share/aziz-auto.sh"' /etc/profile
 	exit 0
 	EOF
 fi
 
-grep "Lenyu-pw.sh"  package/emortal/default-settings/files/99-default-settings
+grep "aziz-pw.sh"  package/emortal/default-settings/files/99-default-settings
 if [ $? != 0 ]; then
 	sed -i 's/exit 0/ /'  package/emortal/default-settings/files/99-default-settings
 	cat>> package/emortal/default-settings/files/99-default-settings<<-EOF
-	sed -i '$ a alias lenyu-pw="sh /usr/share/Lenyu-pw.sh"' /etc/profile
+	sed -i '$ a alias aziz-pw="sh /usr/share/aziz-pw.sh"' /etc/profile
 	exit 0
 	EOF
 fi
@@ -189,19 +189,19 @@ EOOF
 cat>files/usr/share/Check_Update.sh<<-\EOF
 #!/bin/bash
 # https://github.com/Blueplanet20120/Actions-OpenWrt-x86
-# Actions-OpenWrt-x86 By Lenyu 20210505
+# Actions-OpenWrt-x86 By aziz 20210505
 #path=$(dirname $(readlink -f $0))
 # cd ${path}
 #检测准备
-if [ ! -f  "/etc/lenyu_version" ]; then
+if [ ! -f  "/etc/aziz_version" ]; then
 	echo
-	echo -e "\033[31m 该脚本在非Lenyu固件上运行，为避免不必要的麻烦，准备退出… \033[0m"
+	echo -e "\033[31m 该脚本在非aziz固件上运行，为避免不必要的麻烦，准备退出… \033[0m"
 	echo
 	exit 0
 fi
 rm -f /tmp/cloud_version
 # 获取固件云端版本号、内核版本号信息
-current_version=`cat /etc/lenyu_version`
+current_version=`cat /etc/aziz_version`
 curl -s https://api.github.com/repos/Blueplanet20120/immortalwrt-86/releases/latest | grep 'tag_name' | cut -d\" -f4 > /tmp/cloud_ts_version
 sleep 3
 if [ -s  "/tmp/cloud_ts_version" ]; then
@@ -209,8 +209,8 @@ if [ -s  "/tmp/cloud_ts_version" ]; then
 	cloud_kernel=`cat /tmp/cloud_ts_version | cut -d _ -f 2`
 	#固件下载地址
 	new_version=`cat /tmp/cloud_ts_version`
-	DEV_URL=https://github.com/Blueplanet20120/immortalwrt-86/releases/download/${new_version}/immortalwrt_x86-64-${new_version}_sta_Lenyu.img.gz
-	DEV_UEFI_URL=https://github.com/Blueplanet20120/immortalwrt-86/releases/download/${new_version}/immortalwrt_x86-64-${new_version}_uefi-gpt_sta_Lenyu.img.gz
+	DEV_URL=https://github.com/Blueplanet20120/immortalwrt-86/releases/download/${new_version}/immortalwrt_x86-64-${new_version}_sta_aziz.img.gz
+	DEV_UEFI_URL=https://github.com/Blueplanet20120/immortalwrt-86/releases/download/${new_version}/immortalwrt_x86-64-${new_version}_uefi-gpt_sta_aziz.img.gz
 	immortalwrt_sta=https://github.com/Blueplanet20120/immortalwrt-86/releases/download/${new_version}/immortalwrt_sta.md5
 	immortalwrt_sta_uefi=https://github.com/Blueplanet20120immortalwrt-86/releases/download/${new_version}/immortalwrt_sta_uefi.md5
 else
@@ -219,18 +219,18 @@ else
 fi
 ####
 Firmware_Type="$(grep 'DISTRIB_ARCH=' /etc/immortalwrt_release | cut -d \' -f 2)"
-echo $Firmware_Type > /etc/lenyu_firmware_type
+echo $Firmware_Type > /etc/aziz_firmware_type
 echo
 if [[ "$cloud_kernel" =~ "4.19" ]]; then
 	echo
-	echo -e "\033[31m 该脚本在Lenyu固件Sta版本上运行，目前只建议在Dev版本上运行，准备退出… \033[0m"
+	echo -e "\033[31m 该脚本在aziz固件Sta版本上运行，目前只建议在Dev版本上运行，准备退出… \033[0m"
 	echo
 	exit 0
 fi
 #md5值验证，固件类型判断
 if [ ! -d /sys/firmware/efi ];then
 	if [ "$current_version" != "$cloud_version" ];then
-		wget -P /tmp "$DEV_URL" -O /tmp/immortalwrt_x86-64-${new_version}_sta_Lenyu.img.gz
+		wget -P /tmp "$DEV_URL" -O /tmp/immortalwrt_x86-64-${new_version}_sta_aziz.img.gz
 		wget -P /tmp "$immortalwrt_sta" -O /tmp/immortalwrt_sta.md5
 		cd /tmp && md5sum -c immortalwrt_sta.md5
 		if [ $? != 0 ]; then
@@ -246,7 +246,7 @@ if [ ! -d /sys/firmware/efi ];then
 	fi
 else
 	if [ "$current_version" != "$cloud_version" ];then
-		wget -P /tmp "$DEV_UEFI_URL" -O /tmp/immortalwrt_x86-64-${new_version}_uefi-gpt_sta_Lenyu.img.gz
+		wget -P /tmp "$DEV_UEFI_URL" -O /tmp/immortalwrt_x86-64-${new_version}_uefi-gpt_sta_aziz.img.gz
 		wget -P /tmp "$immortalwrt_sta_uefi" -O /tmp/immortalwrt_sta_uefi.md5
 		cd /tmp && md5sum -c immortalwrt_sta_uefi.md5
 		if [ $? != 0 ]; then
@@ -275,9 +275,9 @@ case $num1 in
 	echo
 	sleep 3
 	if [ ! -d /sys/firmware/efi ];then
-		sysupgrade /tmp/immortalwrt_x86-64-${new_version}_sta_Lenyu.img.gz
+		sysupgrade /tmp/immortalwrt_x86-64-${new_version}_sta_aziz.img.gz
 	else
-		sysupgrade /tmp/immortalwrt_x86-64-${new_version}_uefi-gpt_sta_Lenyu.img.gz
+		sysupgrade /tmp/immortalwrt_x86-64-${new_version}_uefi-gpt_sta_aziz.img.gz
 	fi
     ;;
     n|N)
@@ -286,9 +286,9 @@ case $num1 in
     echo
     sleep 3
 	if [ ! -d /sys/firmware/efi ];then
-		sysupgrade -n  /tmp/immortalwrt_x86-64-${new_version}_sta_Lenyu.img.gz
+		sysupgrade -n  /tmp/immortalwrt_x86-64-${new_version}_sta_aziz.img.gz
 	else
-		sysupgrade -n  /tmp/immortalwrt_x86-64-${new_version}_uefi-gpt_sta_Lenyu.img.gz
+		sysupgrade -n  /tmp/immortalwrt_x86-64-${new_version}_uefi-gpt_sta_aziz.img.gz
 	fi
     ;;
     *)
@@ -329,23 +329,23 @@ open_op
 exit 0
 EOF
 
-cat>files/usr/share/Lenyu-auto.sh<<-\EOF
+cat>files/usr/share/aziz-auto.sh<<-\EOF
 #!/bin/bash
 # https://github.com/Blueplanet20120/immortalwrt-86
-# Actions-OpenWrt-x86 By Lenyu 20210505
+# Actions-OpenWrt-x86 By aziz 20210505
 #path=$(dirname $(readlink -f $0))
 # cd ${path}
 #检测准备
-if [ ! -f  "/etc/lenyu_version" ]; then
+if [ ! -f  "/etc/aziz_version" ]; then
 echo
-echo -e "\033[31m 该脚本在非Lenyu固件上运行，为避免不必要的麻烦，准备退出… \033[0m"
+echo -e "\033[31m 该脚本在非aziz固件上运行，为避免不必要的麻烦，准备退出… \033[0m"
 echo
 exit 0
 fi
 rm -f /tmp/cloud_version
 
 # 获取固件云端版本号、内核版本号信息
-current_version=`cat /etc/lenyu_version`
+current_version=`cat /etc/aziz_version`
 # wget -qO- -T2 "https://api.github.com/repos/Blueplanet20120/immortalwrt-86/releases/latest" | grep "tag_name" | head -n 1 | awk -F ":" '{print $2}' | sed 's/\"//g;s/,//g;s/ //g;s/v//g'  > /tmp/cloud_ts_version
 # 因immortalwrt不支持上述格式.
 curl -s https://api.github.com/repos/Blueplanet20120/immortalwrt-86/releases/latest | grep 'tag_name' | cut -d\" -f4 > /tmp/cloud_ts_version
@@ -355,8 +355,8 @@ cloud_version=`cat /tmp/cloud_ts_version | cut -d _ -f 1`
 cloud_kernel=`cat /tmp/cloud_ts_version | cut -d _ -f 2`
 #固件下载地址
 new_version=`cat /tmp/cloud_ts_version` # 2208052057_5.4.203
-DEV_URL=https://github.com/Blueplanet20120/immortalwrt-86/releases/download/${new_version}/immortalwrt_x86-64-${new_version}_sta_Lenyu.img.gz
-DEV_UEFI_URL=https://github.com/Blueplanet20120/immortalwrt-86/releases/download/${new_version}/immortalwrt_x86-64-${new_version}_uefi-gpt_sta_Lenyu.img.gz
+DEV_URL=https://github.com/Blueplanet20120/immortalwrt-86/releases/download/${new_version}/immortalwrt_x86-64-${new_version}_sta_aziz.img.gz
+DEV_UEFI_URL=https://github.com/Blueplanet20120/immortalwrt-86/releases/download/${new_version}/immortalwrt_x86-64-${new_version}_uefi-gpt_sta_aziz.img.gz
 immortalwrt_sta=https://github.com/Blueplanet20120/immortalwrt-86/releases/download/${new_version}/immortalwrt_sta.md5
 immortalwrt_sta_uefi=https://github.com/Blueplanet20120/immortalwrt-86/releases/download/${new_version}/immortalwrt_sta_uefi.md5
 else
@@ -364,19 +364,19 @@ echo "请检测网络或重试！"
 exit 1
 fi
 ####
-Firmware_Type="$(grep 'DISTRIB_ARCH=' /etc/lenyu_version | cut -d \' -f 2)"
-echo $Firmware_Type > /etc/lenyu_firmware_type
+Firmware_Type="$(grep 'DISTRIB_ARCH=' /etc/aziz_version | cut -d \' -f 2)"
+echo $Firmware_Type > /etc/aziz_firmware_type
 echo
 if [[ "$cloud_kernel" =~ "4.19" ]]; then
 echo
-echo -e "\033[31m 该脚本在Lenyu固件Sta版本上运行，目前只建议在Dev版本上运行，准备退出… \033[0m"
+echo -e "\033[31m 该脚本在aziz固件Sta版本上运行，目前只建议在Dev版本上运行，准备退出… \033[0m"
 echo
 exit 0
 fi
 #md5值验证，固件类型判断
 if [ ! -d /sys/firmware/efi ];then
 if [ "$current_version" != "$cloud_version" ];then
-wget -P /tmp "$DEV_URL" -O /tmp/immortalwrt_x86-64-${new_version}_sta_Lenyu.img.gz
+wget -P /tmp "$DEV_URL" -O /tmp/immortalwrt_x86-64-${new_version}_sta_aziz.img.gz
 wget -P /tmp "$immortalwrt_sta" -O /tmp/immortalwrt_sta.md5
 cd /tmp && md5sum -c immortalwrt_sta.md5
 if [ $? != 0 ]; then
@@ -387,7 +387,7 @@ fi
 # Backing the ROM configuration file
 bash /usr/share/custom-backup.sh
 # update rom
-sysupgrade /tmp/immortalwrt_x86-64-${new_version}_sta_Lenyu.img.gz
+sysupgrade /tmp/immortalwrt_x86-64-${new_version}_sta_aziz.img.gz
 else
 echo -e "\033[32m 本地已经是最新版本，还更个鸡巴毛啊… \033[0m"
 echo
@@ -395,7 +395,7 @@ exit
 fi
 else
 if [ "$current_version" != "$cloud_version" ];then
-wget -P /tmp "$DEV_UEFI_URL" -O /tmp/immortalwrt_x86-64-${new_version}_uefi-gpt_sta_Lenyu.img.gz
+wget -P /tmp "$DEV_UEFI_URL" -O /tmp/immortalwrt_x86-64-${new_version}_uefi-gpt_sta_aziz.img.gz
 wget -P /tmp "$immortalwrt_sta_uefi" -O /tmp/immortalwrt_sta_uefi.md5
 cd /tmp && md5sum -c immortalwrt_sta_uefi.md5
 if [ $? != 0 ]; then
@@ -406,7 +406,7 @@ fi
 # Backing the ROM configuration file
 bash /usr/share/custom-backup.sh
 # update rom
-sysupgrade /tmp/immortalwrt_x86-64-${new_version}_uefi-gpt_sta_Lenyu.img.gz
+sysupgrade /tmp/immortalwrt_x86-64-${new_version}_uefi-gpt_sta_aziz.img.gz
 else
 echo -e "\033[32m 本地已经是最新版本，还更个鸡巴毛啊… \033[0m"
 echo
@@ -416,7 +416,7 @@ fi
 exit 0
 EOF
 
-cat>files/usr/share/Lenyu-pw.sh<<-\EOF
+cat>files/usr/share/aziz-pw.sh<<-\EOF
 #!/bin/sh
 # Define variables
 TEMP_DIR="/tmp/test"
