@@ -104,10 +104,10 @@ jobs:
         cd openwrt/package 		
         git clone https://github.com/Blueplanet20120/romupdate2.git
         
-    - name: lenyu
+    - name: aziz
       run: |
         cd openwrt 
-        bash  lenyu.sh
+        bash  aziz.sh
 
     - name: Update feeds
       run: cd openwrt && ./scripts/feeds update -a
