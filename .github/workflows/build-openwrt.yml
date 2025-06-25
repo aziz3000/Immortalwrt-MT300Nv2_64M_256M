@@ -38,7 +38,7 @@ env:
   UPLOAD_COWTRANSFER: false
   UPLOAD_WETRANSFER: false
   UPLOAD_RELEASE: true
-  DEVICE: 360t7
+  DEVICE: GL-MT300N-V2-immortalwrt
   TZ: Asia/Shanghai
 
 jobs:
