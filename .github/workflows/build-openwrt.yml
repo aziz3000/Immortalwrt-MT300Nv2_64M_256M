@@ -30,7 +30,7 @@ env:
   REPO_URL: --single-branch --filter=blob:none https://github.com/aziz3000/immortalwrt
   REPO_BRANCH: openwrt-24.10
   FEEDS_CONF: feeds.conf.default
-  CONFIG_FILE: .diffconfig
+  CONFIG_FILE: .MT300N2config
   DIY_P1_SH: diy-part1.sh
   DIY_P2_SH: diy-part2.sh
   UPLOAD_BIN_DIR: false
@@ -196,8 +196,9 @@ jobs:
     - name: 发布固件至 Release
       uses: ncipollo/release-action@v1
       with:
-        tag: "${{ env.DEVICE }}--${{ env.FILE_DATE }}"
+        tag: "${{ env.DEVICE }}--${{ env.DEVICE }}"
         artifacts: "openwrt/bin/targets/*/*/*"
+        artifacts: "openwrt/.config"
         body: |
           # 未测试×
           
