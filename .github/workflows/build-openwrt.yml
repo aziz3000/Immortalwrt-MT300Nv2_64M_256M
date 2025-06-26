@@ -198,7 +198,6 @@ jobs:
       with:
         tag: "${{ env.DEVICE }}--${{ env.DEVICE }}"
         artifacts: "openwrt/bin/targets/*/*/*"
-        artifacts: "openwrt/.config"
         body: |
           # 未测试×
           
