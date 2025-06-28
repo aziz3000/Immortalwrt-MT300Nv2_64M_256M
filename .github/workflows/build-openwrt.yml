@@ -196,9 +196,9 @@ jobs:
     - name: 发布固件至 Release
       uses: ncipollo/release-action@v1
       with:
-        tag: "${{ env.DEVICE }}--${{ env.DEVICE }}"
+        tag: "${{ env.DEVICE }}-${{ env.FILE_DATE }}-${{ github.run_number}}"
         artifacts: "openwrt/bin/targets/*/*/*"
         body: |
-          # 未测试×
+          # Immortalwrt-(版本openwrt-24.10) 未测试×
           
           IP: 10.10.11.1 | Password: none        
