@@ -1,12 +1,9 @@
 **English** | 中文
 
-# Actions-OpenWrt
+# Actions-Immortalwrt
 
-[![LICENSE](https://img.shields.io/github/license/mashape/apistatus.svg?style=flat-square&label=LICENSE)](https://github.com/P3TERX/Actions-OpenWrt/blob/master/LICENSE)
-![GitHub Stars](https://img.shields.io/github/stars/P3TERX/Actions-OpenWrt.svg?style=flat-square&label=Stars&logo=github)
-![GitHub Forks](https://img.shields.io/github/forks/P3TERX/Actions-OpenWrt.svg?style=flat-square&label=Forks&logo=github)
-
-A template for building immortalwrt with GitHub Actions
+[![LICENSE]([https://img.shields.io/github/license/mashape/apistatus.svg?style=flat-square&label=LICENSE)]
+A template for building immortalwrt GLinet MT300N V2 64m with GitHub Actions
 
 Main features:
 
@@ -28,7 +25,3 @@ b. Local and cloud firmware version numbers can be viewed.
 - xiaorouji
 - vernesong
 - ...
-
-
-## Join Group
-- .[点击加入"Openwrt_Share Group"群](https://t.me/openwrt_lede_v2ray_plugin)
