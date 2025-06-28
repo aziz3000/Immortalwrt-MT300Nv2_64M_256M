@@ -29,8 +29,12 @@ Dimension, Weight        58mmX58mmX25mm, 39g
 MT7628_datasheet芯片参数表
 https://files.seeedstudio.com/pr ... T7628_datasheet.pdf
 
-# 软件
+# 固件特点
 A template for building immortalwrt GLinet MT300N V2 64m with GitHub Actions
+
+支持USB 
+支持wifi热点
+支持paswall等
 
 Main features:
 
