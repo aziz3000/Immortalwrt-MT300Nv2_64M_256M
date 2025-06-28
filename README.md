@@ -4,7 +4,8 @@
 
 # 硬件配置
 关于GLinet MT300N-V2 升级32M flash+64M flash+256MB内存 +固件 全套方法
-https://www.right.com.cn/forum/thread-8385631-1-1.html
+- [改造教程](https://www.right.com.cn/forum/thread-8385631-1-1.html)
+
 GLinet MT300N-V2基本参数。
 CPU        MTK 7628NN 580MHz
 Memory        DDRII 128MB
@@ -25,9 +26,8 @@ PoE Module Support        No
 Power Input        5V/2A
 Power Consumption        <2.75W
 Dimension, Weight        58mmX58mmX25mm, 39g
+- [MT7628_datasheet芯片参数表](https://files.seeedstudio.com/products/114992470/MT7628_datasheet.pdf)
 
-MT7628_datasheet芯片参数表
-https://files.seeedstudio.com/pr ... T7628_datasheet.pdf
 
 # 固件特点
 A template for building immortalwrt GLinet MT300N V2 64m with GitHub Actions
