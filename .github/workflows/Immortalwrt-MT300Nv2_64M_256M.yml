@@ -8,7 +8,7 @@
 # Description: Build OpenWrt using GitHub Actions
 #
 
-name: Build OpenWrt
+name: Immortalwrt-MT300Nv2_64M_256M
 
 on:
   repository_dispatch:
@@ -30,7 +30,7 @@ env:
   REPO_URL: --single-branch --filter=blob:none https://github.com/aziz3000/immortalwrt
   REPO_BRANCH: openwrt-24.10
   FEEDS_CONF: feeds.conf.default
-  CONFIG_FILE: .MT300N2config
+  CONFIG_FILE: MT300N2.config
   DIY_P1_SH: diy-part1.sh
   DIY_P2_SH: diy-part2.sh
   UPLOAD_BIN_DIR: false
@@ -199,6 +199,6 @@ jobs:
         tag: "${{ env.DEVICE }}-${{ env.FILE_DATE }}-${{ github.run_number}}"
         artifacts: "openwrt/bin/targets/*/*/*"
         body: |
-          # Immortalwrt-(版本openwrt-24.10) 未测试×
+          # Immortalwrt-MT300Nv2_64M_256M-(版本openwrt-24.10) 未测试×
           
           IP: 10.10.11.1 | Password: none        
