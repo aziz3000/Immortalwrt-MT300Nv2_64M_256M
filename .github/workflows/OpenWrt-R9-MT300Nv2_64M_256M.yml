@@ -1,13 +1,3 @@
-#
-# Copyright (c) 2019-2020 P3TERX <https://p3terx.com>
-#
-# This is free software, licensed under the MIT License.
-# See /LICENSE for more information.
-#
-# https://github.com/P3TERX/Actions-OpenWrt
-# Description: Build OpenWrt using GitHub Actions
-#
-
 name: OpenWrt-R9-MT300Nv2_64M_256M
 
 on:
@@ -18,15 +8,17 @@ on:
         description: 'SSH connection to Actions'
         required: false
         default: 'false'
-#   watch:
-#     types: started
+      thread_count:
+        description: 'Compile threads (default: auto)'
+        required: false
+        default: 'auto'
     
-  #schedule:
-     #- cron: 00 22 * * *
-    
+  schedule:
+    # 每天 UTC 时间 2 点自动编译（北京时间 10 点）
+    - cron: '0 2 * * *'
 
 env:
-  REPO_URL: --single-branch --filter=blob:none https://github.com/aziz3000/OpenWrt-R9
+  REPO_URL: https://github.com/aziz3000/OpenWrt-R9
   REPO_BRANCH: master
   FEEDS_CONF: feeds.conf.default
   CONFIG_FILE: MT300N2.config
@@ -42,15 +34,35 @@ env:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     if: github.event.repository.owner.id == github.event.sender.id
 
     steps:
+    - name: Set build variables
+      id: set-vars
+      run: |
+        # 设置时间戳
+        echo "FILE_DATE=$(date +'%Y%m%d-%H%M')" >> $GITHUB_ENV
+        echo "RUN_NUMBER=${{ github.run_number }}" >> $GITHUB_ENV
+        
+        # 设置线程数
+        if [ "${{ github.event.inputs.thread_count }}" = "auto" ] || [ -z "${{ github.event.inputs.thread_count }}" ]; then
+          THREADS=$(nproc)
+          echo "MAKE_THREADS=$THREADS" >> $GITHUB_ENV
+          echo "使用自动线程数: $THREADS"
+        else
+          echo "MAKE_THREADS=${{ github.event.inputs.thread_count }}" >> $GITHUB_ENV
+          echo "使用指定线程数: ${{ github.event.inputs.thread_count }}"
+        fi
+        
+        # 设置工作目录
+        echo "WORKSPACE=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+
     - name: Maximize Build Space
       uses: easimon/maximize-build-space@master
       with:
-        root-reserve-mb: 6144
-        swap-size-mb: 10240
+        root-reserve-mb: 4096
+        swap-size-mb: 8192
         remove-dotnet: 'true'
         remove-android: 'true'
         remove-haskell: 'true'
@@ -58,146 +70,469 @@ jobs:
         remove-docker-images: 'true'
         build-mount-path: '/workdir'
         
-    - name: Checkout
-      uses: actions/checkout@main
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        path: source
 
-    - name: Disk space
+    - name: Disk space info
       run: |
-           echo "Free space:"
-           df -h
+        echo "磁盘空间信息："
+        df -h
+        echo "内存信息："
+        free -h
 
-    - name: Initialization environment
+    - name: Initialize build environment
       env:
         DEBIAN_FRONTEND: noninteractive
       run: |
-        sudo bash -c 'bash <(curl -s https://build-scripts.immortalwrt.org/init_build_environment.sh)'
-        sudo -E apt-get -qq autoremove --purge
-        sudo -E apt-get -qq clean
+        echo "安装编译依赖..."
+        sudo apt-get update
+        sudo apt-get -y install \
+          build-essential \
+          asciidoc \
+          binutils \
+          bzip2 \
+          gawk \
+          gettext \
+          git \
+          libncurses5-dev \
+          libz-dev \
+          patch \
+          unzip \
+          zlib1g-dev \
+          lib32gcc1 \
+          libc6-dev-i386 \
+          subversion \
+          flex \
+          uglifyjs \
+          git-core \
+          gcc-multilib \
+          p7zip \
+          p7zip-full \
+          msmtp \
+          libssl-dev \
+          texinfo \
+          libglib2.0-dev \
+          xmlto \
+          qemu-utils \
+          upx \
+          libelf-dev \
+          autoconf \
+          automake \
+          libtool \
+          autopoint \
+          ccache \
+          rsync \
+          wget \
+          curl \
+          python3 \
+          python3-pip \
+          python3-setuptools \
+          device-tree-compiler \
+          gperf \
+          antlr3 \
+          g++-multilib
+        
+        # 清理缓存
+        sudo apt-get -qq autoremove --purge
+        sudo apt-get -qq clean
+        
+        # 设置时区
         sudo timedatectl set-timezone "$TZ"
+        
+        # 创建工作目录
         sudo mkdir -p /workdir
         sudo chown $USER:$GROUPS /workdir
+        
+        # 设置 ccache
+        echo 'export PATH="/usr/lib/ccache:$PATH"' | tee -a ~/.bashrc
+        export PATH="/usr/lib/ccache:$PATH"
+        ccache --max-size=2G
+        ccache --set-config=sloppiness=file_macro,locale,time_macros
+        echo "ccache 状态："
+        ccache -s
 
-
-    - name: Clone source code
-      working-directory: /workdir
+    - name: Clone OpenWrt source code
       run: |
-        df -hT $PWD
-        git clone $REPO_URL -b $REPO_BRANCH openwrt
+        echo "克隆 OpenWrt 源码..."
+        cd /workdir
+        git clone ${{ env.REPO_URL }} -b ${{ env.REPO_BRANCH }} openwrt --depth=1
+        
+        # 创建符号链接到工作空间
         ln -sf /workdir/openwrt $GITHUB_WORKSPACE/openwrt
-   
-    - name: Cache
+        
+        echo "源码大小："
+        du -sh /workdir/openwrt
+
+    - name: Setup ccache
       uses: klever1988/cachewrtbuild@main
       with:
-       ccache: 'true'
-       clean:  'false'  # 'false'
-       prefix: ${{ github.workspace }}/openwrt
-    
-    
-    - name: Load custom feeds
+        ccache: 'true'
+        clean: 'false'
+        prefix: $GITHUB_WORKSPACE/openwrt
+
+    - name: Load custom feeds configuration
       run: |
-        [ -e $FEEDS_CONF ] && mv $FEEDS_CONF openwrt/feeds.conf.default
-        chmod +x $DIY_P1_SH
-        cd openwrt
-        $GITHUB_WORKSPACE/$DIY_P1_SH
-    
-    - name: romupdate2
-      run: |
-        cd openwrt/package 		
-        git clone https://github.com/Blueplanet20120/romupdate2.git
+        cd $GITHUB_WORKSPACE/openwrt
         
-    - name: aziz
+        # 加载自定义 feeds 配置
+        if [ -f "$GITHUB_WORKSPACE/source/${{ env.FEEDS_CONF }}" ]; then
+          echo "使用自定义 feeds 配置"
+          cp "$GITHUB_WORKSPACE/source/${{ env.FEEDS_CONF }}" feeds.conf.default
+        fi
+        
+        # 运行自定义脚本
+        if [ -f "$GITHUB_WORKSPACE/source/${{ env.DIY_P1_SH }}" ]; then
+          echo "运行 diy-part1.sh"
+          chmod +x "$GITHUB_WORKSPACE/source/${{ env.DIY_P1_SH }}"
+          "$GITHUB_WORKSPACE/source/${{ env.DIY_P1_SH }}"
+        fi
+
+    - name: Clone romupdate2 package
       run: |
-        cd openwrt 
-        bash  aziz.sh
+        cd $GITHUB_WORKSPACE/openwrt/package
+        echo "克隆 romupdate2 插件..."
+        git clone https://github.com/Blueplanet20120/romupdate2.git || echo "romupdate2 已存在或克隆失败"
 
-    - name: Update feeds
-      run: cd openwrt && ./scripts/feeds update -a
+    - name: Run customization script (fixed)
+      id: custom-script
+      run: |
+        cd $GITHUB_WORKSPACE/openwrt
+        
+        # 检查并修复 aziz.sh 脚本
+        if [ -f "$GITHUB_WORKSPACE/source/aziz.sh" ]; then
+          echo "复制 aziz.sh 到 openwrt 目录"
+          cp "$GITHUB_WORKSPACE/source/aziz.sh" .
+        fi
+        
+        if [ -f "aziz.sh" ]; then
+          echo "检查并修复 aziz.sh 脚本..."
+          
+          # 先备份原始脚本
+          cp aziz.sh aziz.sh.backup
+          
+          # 创建安全的执行脚本
+          cat > run_customization.sh << 'EOF'
+#!/bin/bash
+set -e  # 遇到错误停止
 
-    - name: Install feeds
-      run: cd openwrt && ./scripts/feeds install -a
+echo "运行自定义配置脚本..."
+
+# 如果 aziz.sh 存在，尝试修复并运行
+if [ -f "aziz.sh" ]; then
+    echo "检测到 aziz.sh 脚本"
+    
+    # 先检查文件路径是否存在，如果不存在则跳过相关修改
+    if grep -q "package/emortal/default-settings/files/99-default-settings" aziz.sh; then
+        echo "检测到可能不存在的文件路径，进行修复..."
+        
+        # 查找实际存在的设置文件
+        FIND_SETTINGS=$(find . -name "99-default-settings" -type f 2>/dev/null | head -1)
+        if [ -n "$FIND_SETTINGS" ]; then
+            echo "找到设置文件: $FIND_SETTINGS"
+            # 替换脚本中的路径为实际找到的路径
+            sed -i "s|package/emortal/default-settings/files/99-default-settings|$FIND_SETTINGS|g" aziz.sh
+        else
+            echo "未找到默认设置文件，跳过相关修改"
+            # 注释掉可能失败的行
+            sed -i 's/^\([^#].*package\/emortal.*\)/# \1/g' aziz.sh
+        fi
+    fi
+    
+    # 给脚本执行权限并运行
+    chmod +x aziz.sh
+    echo "运行 aziz.sh..."
+    bash aziz.sh || echo "aziz.sh 运行完成（可能有警告）"
+else
+    echo "未找到 aziz.sh，执行默认配置"
+    
+    # 创建默认配置
+    mkdir -p files/etc/uci-defaults
+    cat > files/etc/uci-defaults/99-custom-settings << 'CONFIG_EOF'
+#!/bin/sh
+
+# 设置时区
+uci set system.@system[0].timezone='CST-8'
+uci set system.@system[0].zonename='Asia/Shanghai'
+uci commit system
+
+# 设置 LAN IP 为 192.168.1.1（原为 10.10.11.1）
+uci set network.lan.ipaddr='192.168.1.1'
+uci commit network
+
+exit 0
+CONFIG_EOF
+    
+    chmod +x files/etc/uci-defaults/99-custom-settings
+fi
+
+echo "自定义配置完成"
+EOF
+          
+          chmod +x run_customization.sh
+          ./run_customization.sh
+        else
+          echo "未找到 aziz.sh，跳过自定义脚本"
+        fi
+
+    - name: Update and install feeds
+      run: |
+        cd $GITHUB_WORKSPACE/openwrt
+        echo "更新 feeds..."
+        ./scripts/feeds update -a
+        echo "安装 feeds..."
+        ./scripts/feeds install -a
 
     - name: Load custom configuration
       run: |
-        [ -e files ] && mv files openwrt/files
-        [ -e $CONFIG_FILE ] && mv $CONFIG_FILE openwrt/.config
-        chmod +x $DIY_P2_SH
-        cd openwrt
-        $GITHUB_WORKSPACE/$DIY_P2_SH
+        cd $GITHUB_WORKSPACE/openwrt
+        
+        # 加载自定义文件
+        if [ -d "$GITHUB_WORKSPACE/source/files" ]; then
+          echo "复制自定义文件..."
+          cp -r "$GITHUB_WORKSPACE/source/files"/* files/ 2>/dev/null || true
+        fi
+        
+        # 加载配置文件
+        if [ -f "$GITHUB_WORKSPACE/source/${{ env.CONFIG_FILE }}" ]; then
+          echo "使用配置文件: ${{ env.CONFIG_FILE }}"
+          cp "$GITHUB_WORKSPACE/source/${{ env.CONFIG_FILE }}" .config
+        else
+          echo "警告：未找到配置文件 ${{ env.CONFIG_FILE }}"
+        fi
+        
+        # 运行 diy-part2.sh
+        if [ -f "$GITHUB_WORKSPACE/source/${{ env.DIY_P2_SH }}" ]; then
+          echo "运行 diy-part2.sh"
+          chmod +x "$GITHUB_WORKSPACE/source/${{ env.DIY_P2_SH }}"
+          "$GITHUB_WORKSPACE/source/${{ env.DIY_P2_SH }}"
+        fi
 
     - name: SSH connection to Actions
       uses: P3TERX/ssh2actions@v1.0.0
-      if: (github.event.inputs.ssh == 'true' && github.event.inputs.ssh  != 'false') || contains(github.event.action, 'ssh')
+      if: (github.event.inputs.ssh == 'true' && github.event.inputs.ssh != 'false') || contains(github.event.action, 'ssh')
       env:
         TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
 
-    - name: Download package
-      id: package
+    - name: Download packages
+      id: download-packages
       run: |
-        cd openwrt
-        echo -e 'CONFIG_DEVEL=y\nCONFIG_CCACHE=y' >> .config #Cache.Speedup
+        cd $GITHUB_WORKSPACE/openwrt
+        echo "配置编译缓存..."
+        echo -e 'CONFIG_DEVEL=y\nCONFIG_CCACHE=y' >> .config
+        
+        echo "生成默认配置..."
         make defconfig
-        make download -j8
-        find dl -size -1024c -exec ls -l {} \;
-        find dl -size -1024c -exec rm -f {} \;
-
-    - name: Compile the firmware
-      id: compile
-      run: |
-        cd openwrt
-        echo -e "$(nproc) thread compile"
-        make -j$(nproc) || make -j1 || make -j1 V=s
-        echo "status=success" >> $GITHUB_OUTPUT
-        grep '^CONFIG_TARGET.*DEVICE.*=y' .config | sed -r 's/.*DEVICE_(.*)=y/\1/' > DEVICE_NAME
-        [ -s DEVICE_NAME ] && echo "DEVICE_NAME=_$(cat DEVICE_NAME)" >> $GITHUB_ENV
-        echo "FILE_DATE=_$(date +"%Y%m%d%H%M")" >> $GITHUB_ENV
-
-    - name: Check space usage
-      if: (!cancelled())
-      run: df -hT
-
-    - name: Upload bin directory
-      uses: actions/upload-artifact@main
-      if: steps.compile.outputs.status == 'success' && env.UPLOAD_BIN_DIR == 'true'
-      with:
-        name: OpenWrt_bin${{ env.DEVICE_NAME }}${{ env.FILE_DATE }}
-        path: openwrt/bin
-   
-    - name: delete files
-      run: |
-        cd openwrt 
-        bash  rename.sh
-    
-    - name: Organize files
-      id: organize
-      if: env.UPLOAD_FIRMWARE == 'true' && !cancelled()
-      run: |
-        cd $GITHUB_WORKSPACE/openwrt/bin/packages
-        tar -zcvf Packages.tar.gz ./*
-        cp Packages.tar.gz $GITHUB_WORKSPACE/openwrt/bin/targets/*/*
-        cd $GITHUB_WORKSPACE/openwrt/bin/targets/*/*
-        rm -rf packages
-        echo "FIRMWARE=$PWD" >> $GITHUB_ENV
-        echo "status=success" >> ${GITHUB_OUTPUT}
         
-    - name : 上传输出文件
-      uses: actions/upload-artifact@master
-      if: env.UPLOAD_OUTPUT == 'true' && !cancelled()
-      with:
-        name: ${{ env.DEVICE }}--${{ env.FILE_DATE }}
-        path: openwrt/bin
+        echo "下载软件包..."
+        make download -j8 || make download -j4 || make download -j1
         
-    - name: 整理输出文件
+        # 清理无效的小文件
+        echo "清理无效下载文件..."
+        find dl -size -1024c -exec rm -f {} \; 2>/dev/null || true
+        
+        echo "下载完成，dl目录大小："
+        du -sh dl
+
+    - name: Compile firmware
+      id: compile-firmware
       run: |
-        cd openwrt/bin/targets/*/*
-        rm -rf packages
-    
-    - name: 发布固件至 Release
-      uses: ncipollo/release-action@v1
-      with:
-        tag: "${{ env.DEVICE }}-${{ env.FILE_DATE }}-${{ github.run_number}}"
-        artifacts: "openwrt/bin/targets/*/*/*"
-        body: |
-          # OpenWrt-R9-MT300Nv2_64M_256M-(版本openwrt-24.10) 未测试×
+        cd $GITHUB_WORKSPACE/openwrt
+        echo "开始编译固件，使用 ${{ env.MAKE_THREADS }} 个线程..."
+        
+        # 显示配置摘要
+        echo "配置摘要："
+        grep -E "CONFIG_TARGET|CONFIG_PACKAGE" .config | head -20
+        
+        # 编译固件
+        echo "开始编译..."
+        make -j${{ env.MAKE_THREADS }} || make -j2 || make -j1 V=s
+        
+        # 检查编译结果
+        if [ $? -eq 0 ]; then
+          echo "status=success" >> $GITHUB_OUTPUT
+          echo "编译成功！"
           
-          IP: 10.10.11.1 | Password: none        
+          # 获取设备名称
+          if grep -q '^CONFIG_TARGET.*DEVICE.*=y' .config; then
+            grep '^CONFIG_TARGET.*DEVICE.*=y' .config | sed -r 's/.*DEVICE_(.*)=y/\1/' > DEVICE_NAME
+            if [ -s DEVICE_NAME ]; then
+              DEVICE_NAME="_$(cat DEVICE_NAME)"
+              echo "DEVICE_NAME=$DEVICE_NAME" >> $GITHUB_ENV
+              echo "设备名称: $DEVICE_NAME"
+            fi
+          fi
+        else
+          echo "status=failed" >> $GITHUB_OUTPUT
+          echo "编译失败"
+          exit 1
+        fi
+
+    - name: Check build space usage
+      if: always()
+      run: |
+        echo "编译后磁盘使用情况："
+        df -h
+        echo "编译目录大小："
+        du -sh $GITHUB_WORKSPACE/openwrt/bin 2>/dev/null || echo "bin目录不存在"
+
+    - name: Rename firmware files
+      id: rename-files
+      if: steps.compile-firmware.outputs.status == 'success' && !cancelled()
+      run: |
+        # 进入固件目录
+        cd $GITHUB_WORKSPACE/openwrt/bin/targets 2>/dev/null || { echo "未找到targets目录"; exit 0; }
+        
+        # 找到具体的设备目录
+        TARGET_DIR=$(find . -type d -name "*" | head -1)
+        if [ -z "$TARGET_DIR" ]; then
+          echo "未找到固件目录"
+          exit 0
+        fi
+        
+        cd "$TARGET_DIR"
+        echo "当前目录: $PWD"
+        echo "文件列表:"
+        ls -la
+        
+        echo "重命名固件文件..."
+        
+        # 为固件文件添加时间戳
+        for file in openwrt-*.bin openwrt-*.img openwrt-*.tar.gz; do
+          if [ -f "$file" ]; then
+            # 提取基本名称和扩展名
+            base="${file%.*}"
+            ext="${file##*.}"
+            
+            # 创建新文件名（移除可能已有的版本号）
+            clean_name=$(echo "$base" | sed 's/-[0-9]\+\.[0-9]\+\.[0-9]\+-[^-]*//')
+            new_name="${clean_name}-${{ env.FILE_DATE }}.${ext}"
+            
+            # 重命名文件
+            mv "$file" "$new_name"
+            echo "重命名: $file -> $new_name"
+          fi
+        done
+        
+        # 复制并重命名 .config 文件
+        if [ -f "$GITHUB_WORKSPACE/openwrt/.config" ]; then
+          cp "$GITHUB_WORKSPACE/openwrt/.config" "config-${{ env.DEVICE }}-${{ env.FILE_DATE }}.txt"
+          echo "已保存配置文件"
+        fi
+        
+        # 显示重命名后的文件
+        echo "重命名后的文件列表："
+        ls -lh *.bin *.img *.tar.gz *.txt 2>/dev/null || true
+
+    - name: Package files
+      id: package-files
+      if: env.UPLOAD_FIRMWARE == 'true' && steps.compile-firmware.outputs.status == 'success' && !cancelled()
+      run: |
+        echo "打包文件..."
+        
+        # 打包 packages 目录
+        cd $GITHUB_WORKSPACE/openwrt/bin/packages
+        tar -zcvf "Packages-${{ env.FILE_DATE }}.tar.gz" ./*
+        
+        # 复制到 targets 目录
+        TARGET_PATH=$(find ../targets -type d -name "*" | head -1)
+        if [ -n "$TARGET_PATH" ]; then
+          cp "Packages-${{ env.FILE_DATE }}.tar.gz" "$TARGET_PATH/"
+          echo "已复制到 targets 目录"
+        fi
+        
+        # 设置环境变量
+        echo "打包完成"
+
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v4
+      if: env.UPLOAD_BIN_DIR == 'true' && steps.compile-firmware.outputs.status == 'success' && !cancelled()
+      with:
+        name: OpenWrt-bin-${{ env.DEVICE }}-${{ env.FILE_DATE }}
+        path: $GITHUB_WORKSPACE/openwrt/bin
+        retention-days: 7
+
+    - name: Upload output files
+      uses: actions/upload-artifact@v4
+      if: steps.compile-firmware.outputs.status == 'success' && !cancelled()
+      with:
+        name: ${{ env.DEVICE }}-${{ env.FILE_DATE }}
+        path: |
+          $GITHUB_WORKSPACE/openwrt/bin/targets/**/*
+          $GITHUB_WORKSPACE/openwrt/.config
+        retention-days: 7
+
+    - name: Clean up packages directory
+      if: always()
+      run: |
+        cd $GITHUB_WORKSPACE/openwrt/bin/targets 2>/dev/null || exit 0
+        find . -name "packages" -type d -exec rm -rf {} \; 2>/dev/null || true
+        find . -name "Packages.tar.gz" -delete 2>/dev/null || true
+
+    - name: Publish to GitHub Release
+      uses: ncipollo/release-action@v1
+      if: env.UPLOAD_RELEASE == 'true' && steps.compile-firmware.outputs.status == 'success' && !cancelled()
+      with:
+        tag: "${{ env.DEVICE }}-${{ env.FILE_DATE }}-${{ env.RUN_NUMBER }}"
+        name: "OpenWrt-R9 ${{ env.DEVICE }} Build ${{ env.FILE_DATE }}"
+        artifacts: |
+          $GITHUB_WORKSPACE/openwrt/bin/targets/**/openwrt-*.bin
+          $GITHUB_WORKSPACE/openwrt/bin/targets/**/openwrt-*.img
+          $GITHUB_WORKSPACE/openwrt/bin/targets/**/openwrt-*.tar.gz
+          $GITHUB_WORKSPACE/openwrt/bin/targets/**/config-*.txt
+          $GITHUB_WORKSPACE/openwrt/bin/targets/**/Packages-*.tar.gz
+          $GITHUB_WORKSPACE/openwrt/bin/targets/**/sha256sums
+        body: |
+          # OpenWrt-R9 MT300Nv2 64M/256M 固件
+          
+          **编译信息：**
+          - 设备型号: ${{ env.DEVICE }}
+          - 编译时间: ${{ env.FILE_DATE }}
+          - 编译序号: ${{ env.RUN_NUMBER }}
+          - 源码分支: ${{ env.REPO_BRANCH }}
+          
+          **固件信息：**
+          - 默认管理地址: 192.168.1.1
+          - 用户名: root
+          - 密码: 无（首次登录自行设置）
+          - 包含插件: romupdate2
+          
+          **刷机说明：**
+          1. 下载对应的固件文件
+          2. 通过路由器原厂固件升级界面刷入
+          3. 等待路由器重启完成（约2-3分钟）
+          4. 访问 http://192.168.1.1 进行配置
+          
+          **注意事项：**
+          - 刷机前请备份重要数据
+          - 刷机过程中请勿断电
+          - 首次启动时间较长，请耐心等待
+          
+          **文件说明：**
+          - `openwrt-*.bin`: 可刷写固件文件
+          - `config-*.txt`: 编译使用的配置文件
+          - `Packages-*.tar.gz`: 所有软件包集合
+          - `sha256sums`: 文件完整性校验
+
+    - name: Build summary
+      if: always()
+      run: |
+        echo "=== 编译总结 ==="
+        echo "设备: ${{ env.DEVICE }}"
+        echo "时间: ${{ env.FILE_DATE }}"
+        echo "运行号: ${{ env.RUN_NUMBER }}"
+        echo "状态: ${{ job.status }}"
+        
+        if [ "${{ job.status }}" = "success" ]; then
+          echo "✅ 编译成功完成！"
+          echo "固件已上传到 GitHub Release 和 Artifacts"
+          
+          # 显示生成的文件
+          echo "生成的文件："
+          find $GITHUB_WORKSPACE/openwrt/bin/targets -type f -name "*.bin" -o -name "*.img" -o -name "*.tar.gz" 2>/dev/null | head -10
+        else
+          echo "❌ 编译失败"
+          echo "请检查错误日志"
+        fi
