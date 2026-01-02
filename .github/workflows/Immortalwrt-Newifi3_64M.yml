@@ -26,7 +26,6 @@ on:
     
   
 env:
-  #REPO_URL: --single-branch --filter=blob:none https://github.com/immortalwrt/immortalwrt
   REPO_URL: --single-branch --filter=blob:none https://github.com/aziz3000/immortalwrt
   REPO_BRANCH: openwrt-24.10
   FEEDS_CONF: feeds.conf.default
@@ -199,6 +198,5 @@ jobs:
         tag: "${{ env.DEVICE }}-${{ env.FILE_DATE }}-${{ github.run_number}}"
         artifacts: "openwrt/bin/targets/*/*/*"
         body: |
-          # Immortalwrt-Newifi3_flash64M 固件(openwrt-24.10) 未测试×
-          
+          &DEVICE ( &REPO_BRANCH ) 
           IP: 10.10.11.1 | Password: none        
