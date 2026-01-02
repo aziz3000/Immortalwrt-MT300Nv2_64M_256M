@@ -177,6 +177,18 @@ jobs:
         cp Packages.tar.gz $GITHUB_WORKSPACE/openwrt/bin/targets/*/*
         cd $GITHUB_WORKSPACE/openwrt/bin/targets/*/*
         rm -rf packages
+        # 为所有固件文件添加时间戳
+        for file in openwrt-*.bin openwrt-*.img openwrt-*.tar.gz; do
+          if [ -f "$file" ]; then
+            # 提取文件名和扩展名
+            filename="${file%.*}"
+            extension="${file##*.}"
+            # 添加时间戳
+            new_name="${filename}-${{ env.FILE_DATE }}.${extension}"
+            mv "$file" "$new_name"
+            echo "Renamed: $file -> $new_name"
+          fi
+        done
         echo "FIRMWARE=$PWD" >> $GITHUB_ENV
         echo "status=success" >> ${GITHUB_OUTPUT}
         
