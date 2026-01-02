@@ -8,7 +8,7 @@
 # Description: Build OpenWrt using GitHub Actions
 #
 
-name: OpenWrtR9MT300Nv2_64M_256M
+name: OPR9MT300NV2_64M_256M
 
 on:
   repository_dispatch:
@@ -23,7 +23,7 @@ on:
         required: false
         default: 'auto'
     
-  schedule:
+  #schedule:
     # 每天 UTC 时间 2 点自动编译（北京时间 10 点）
     #-     #- cron: '0 2
 
@@ -39,7 +39,7 @@ env:
   UPLOAD_COWTRANSFER: false
   UPLOAD_WETRANSFER: false
   UPLOAD_RELEASE: true
-  DEVICE: OpenWrtR9MT300Nv2_64M_256M
+  DEVICE: OPR9MT300NV2_64M_256M
   TZ: Asia/Shanghai
 
 jobs:
