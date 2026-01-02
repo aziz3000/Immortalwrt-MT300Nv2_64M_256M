@@ -27,7 +27,7 @@ on:
   
 env:
   REPO_URL: --single-branch --filter=blob:none https://github.com/aziz3000/OpenWrt-R9
-  REPO_BRANCH: openwrt-24.10
+  REPO_BRANCH: master
   FEEDS_CONF: feeds.conf.default
   CONFIG_FILE: MT300N2.config
   DIY_P1_SH: diy-part1.sh
