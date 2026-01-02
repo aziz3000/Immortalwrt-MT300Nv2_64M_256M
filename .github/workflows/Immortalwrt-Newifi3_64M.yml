@@ -173,9 +173,11 @@ jobs:
       if: env.UPLOAD_FIRMWARE == 'true' && !cancelled()
       run: |
         cd $GITHUB_WORKSPACE/openwrt/bin/packages
-        tar -zcvf Packages.tar.gz ./* $GITHUB_WORKSPACE/openwrt/.config
+        tar -zcvf Packages.tar.gz ./*
         cp Packages.tar.gz $GITHUB_WORKSPACE/openwrt/bin/targets/*/*
         cd $GITHUB_WORKSPACE/openwrt/bin/targets/*/*
+        # 同时复制.config到targets目录，便于单独上传
+        cp $GITHUB_WORKSPACE/openwrt/.config $GITHUB_WORKSPACE/openwrt/bin/targets/*/*/config-${{ env.FILE_DATE }}.txt
         rm -rf packages
         # 为所有固件文件添加时间戳
         for file in openwrt-*.bin openwrt-*.img openwrt-*.tar.gz; do
@@ -208,7 +210,10 @@ jobs:
       uses: ncipollo/release-action@v1
       with:
         tag: "${{ env.DEVICE }}-${{ env.FILE_DATE }}-${{ github.run_number}}"
-        artifacts: "openwrt/bin/targets/*/*/*"
+        artifacts: |
+          openwrt/bin/targets/*/*/openwrt-*-${{ env.FILE_DATE }}*
+          openwrt/bin/targets/*/*/config-${{ env.FILE_DATE }}.txt
+          openwrt/bin/targets/*/*/Packages.tar.gz
         body: |
           &DEVICE ( &REPO_BRANCH ) 
           IP: 10.10.11.1 | Password: none        
