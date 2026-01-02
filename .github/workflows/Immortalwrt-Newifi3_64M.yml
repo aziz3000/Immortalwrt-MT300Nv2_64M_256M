@@ -8,7 +8,7 @@
 # Description: Build OpenWrt using GitHub Actions
 #
 
-name: Newifi3_OpenWrt
+name: Immortalwrt-Newifi3_64M
 
 on:
   repository_dispatch:
@@ -38,7 +38,7 @@ env:
   UPLOAD_COWTRANSFER: false
   UPLOAD_WETRANSFER: false
   UPLOAD_RELEASE: true
-  DEVICE: Newifi3-immortalwrt
+  DEVICE: Immortalwrt-Newifi3_64M
   TZ: Asia/Shanghai
 
 jobs:
@@ -199,6 +199,6 @@ jobs:
         tag: "${{ env.DEVICE }}-${{ env.FILE_DATE }}-${{ github.run_number}}"
         artifacts: "openwrt/bin/targets/*/*/*"
         body: |
-          # Immortalwrt-newifi3 (版本openwrt-24.10) 未测试×
+          # Immortalwrt-Newifi3_64M (版本openwrt-24.10) 未测试×
           
           IP: 10.10.11.1 | Password: none        
