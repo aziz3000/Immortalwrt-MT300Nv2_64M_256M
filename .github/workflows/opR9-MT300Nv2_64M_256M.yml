@@ -8,7 +8,7 @@
 # Description: Build OpenWrt using GitHub Actions
 #
 
-name: OPR9MT300NV2_64M_256M
+name: opR9-MT300Nv2_64M_256M
 
 on:
   repository_dispatch:
