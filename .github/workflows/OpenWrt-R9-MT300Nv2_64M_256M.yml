@@ -1,3 +1,13 @@
+#
+# Copyright (c) 2019-2020 P3TERX <https://p3terx.com>
+#
+# This is free software, licensed under the MIT License.
+# See /LICENSE for more information.
+#
+# https://github.com/P3TERX/Actions-OpenWrt
+# Description: Build OpenWrt using GitHub Actions
+#
+
 name: OpenWrt-R9-MT300Nv2_64M_256M
 
 on:
@@ -15,7 +25,7 @@ on:
     
   schedule:
     # 每天 UTC 时间 2 点自动编译（北京时间 10 点）
-    - cron: '0 2 * * *'
+    #-     #- cron: '0 2
 
 env:
   REPO_URL: https://github.com/aziz3000/OpenWrt-R9
