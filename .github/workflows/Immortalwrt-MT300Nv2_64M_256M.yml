@@ -28,7 +28,7 @@ on:
 env:
   #REPO_URL: --single-branch --filter=blob:none https://github.com/immortalwrt/immortalwrt
   REPO_URL: --single-branch --filter=blob:none https://github.com/aziz3000/immortalwrt
-  REPO_BRANCH: openwrt-24.10
+  REPO_BRANCH: openwrt-18.06
   FEEDS_CONF: feeds.conf.default
   CONFIG_FILE: MT300N2.config
   DIY_P1_SH: diy-part1.sh
@@ -199,6 +199,6 @@ jobs:
         tag: "${{ env.DEVICE }}-${{ env.FILE_DATE }}-${{ github.run_number}}"
         artifacts: "openwrt/bin/targets/*/*/*"
         body: |
-          # Immortalwrt-MT300Nv2_64M_256M-(版本openwrt-24.10) 未测试×
+           Immortalwrt-MT300Nv2_64M_256M-(版本 ${{ env.REPO_BRANCH }}) 未测试×
           
           IP: 10.10.11.1 | Password: none        
