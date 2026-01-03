@@ -198,4 +198,11 @@ jobs:
         tag: "${{ env.DEVICE }}-${{ env.FILE_DATE }}-${{ github.run_number}}"
         artifacts: "openwrt/bin/targets/*/*/*"
         body: |
+          **Release Information**:
+          仓库分支： ${{ env.REPO_BRANCH }}
           IP: 10.10.11.1 | Password: none
+          文件名称: ${{ env.DEVICE }}
+          源码地址： ${{ env.REPO_URL }}
+          版本号: v${{ github.sha }}
+          建立时间: ${{ env.FILE_DATE }}
+          运行号: ${{ github.run_number }}
