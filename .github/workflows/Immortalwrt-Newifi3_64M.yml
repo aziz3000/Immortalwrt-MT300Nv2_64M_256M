@@ -104,7 +104,7 @@ jobs:
       run: |
         cd openwrt/package 		
         git clone https://github.com/Blueplanet20120/romupdate2.git
-        git clone --depth=1 https://github.com/master-0123/openwrt-printing-packages package/printing-packages
+        git clone --depth=1 https://github.com/master-0123/openwrt-printing-packages
     - name: aziz
       run: |
         cd openwrt 
